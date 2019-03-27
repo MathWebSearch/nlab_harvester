@@ -1,0 +1,21 @@
+version : '3'
+services:
+    harvester:
+        build:
+            context: ./src
+        environment:
+            - LATEXML_ADDRESS=latexml_daemon
+            - LATEXML_PORT=8080
+            # - MAX_QUEUE_LENGTH=32
+        volumes:
+            - ./harvests:/mws_nlab_harvester/harvests/
+            - ./nlab-content-html:/mws_nlab_harvester/nlab-content-html/
+            - ./logs:/mws_nlab_harvester/logs/
+        depends_on:
+            - latexml_daemon
+
+    latexml_daemon:
+        build:
+            context: ./latexml
+        ports:
+            - "8080:8080"

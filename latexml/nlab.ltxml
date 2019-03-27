@@ -1,0 +1,38 @@
+use LaTeXML::Package;
+use strict;
+use warnings;
+
+DefMacro('\empty', '\emptyset');
+
+# Ignore the arrayopts because I think it's not relavant for the cmml
+DefMacro('\arrayopts{}','');
+# same as for the svg env don't know what to do with it,
+# but it seems not to work for all svg enviroments
+DefEnvironment('{svg}','');
+
+# I hope this makes out of the gathered/aligned environment
+# a gather/align environment
+DefMacro('gathered', 'gather');
+DefMacro('aligned', 'align');
+# DefMacro('\gathered', '\gather');
+# DefMacro('\aligned', '\align');
+
+DefMath('\invamp', "\x{214B}");
+DefMacro('\parr','\invamp');
+
+
+# maybe this fixes the \b in a lot of \b < a formulae
+DefMacro('\b', 'b');
+# fix for these symboles stolen from txfonts.sty.ltxml and stmaryrd.sty.ltxml
+# I don't know why they are not found although the packages are
+# preloaded/included
+DefMath('\nequiv', "\x{2262}", meaning => 'not-equivalent-to', role => 'RELOP');
+DefMathI('\sslash', undef, "\x{2AFD}", role => 'RELOP');
+
+# Fix for doubled Arrows?
+DefMacro('\swArrow', '\Swarrow');
+DefMacro('\neArrow', '\Nearrow');
+DefMacro('\seArrow', '\Searrow');
+DefMacro('\nwArrow', '\Nwarrow');
+
+1;
