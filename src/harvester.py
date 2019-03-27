@@ -40,6 +40,7 @@ def create_expr_tag(data_id, content, url):
     tag.expr['url'] = url
     return tag.expr
 
+
 def generate_url_from_title(title):
     """
     function that takes the the title of an nlab page and genaerates the
@@ -47,7 +48,7 @@ def generate_url_from_title(title):
     the url is always http://ncatlab.org/nlab/show/bla+bla
     """
     assert isinstance(title, str)
-    base = 'http://ncatlab.org/nlab/show/'
+    base = 'http://ncatlab.org/nlab/revision/'
     # some crazy regex magic: it searches for all non-whitespacechars that are
     # maybe followed by a single whitespace, just to remove some unwanted
     # spaces and newlines
@@ -56,7 +57,7 @@ def generate_url_from_title(title):
     len_parts = len(parts)
     for i in range(len_parts):
         base += parts[i]
-        if i == (len_parts - 1) or (parts[i+1] == 'in' and parts[i+2] == 'nLab'):
+        if i == len_parts - 1 or (parts[i+1] == 'in' and parts[i+2] == 'nLab'):
             break
         base += '+'
     return base
@@ -121,7 +122,6 @@ class Harvester:
                 url += ('#' + tag['id'])
 
             root.append(create_expr_tag(data_id, newnode, url))
-
 
     @ltxs.util.timer
     def harvest_file(self, path, data_id, root):

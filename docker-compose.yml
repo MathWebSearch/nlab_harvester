@@ -6,7 +6,8 @@ services:
         environment:
             - LATEXML_ADDRESS=latexml_daemon
             - LATEXML_PORT=8080
-            # - MAX_QUEUE_LENGTH=32
+            - MAX_QUEUE_LENGTH=32
+            - NLAB_HARVESTER_THREADS=8
         volumes:
             - ./harvests:/mws_nlab_harvester/harvests/
             - ./nlab-content-html:/mws_nlab_harvester/nlab-content-html/

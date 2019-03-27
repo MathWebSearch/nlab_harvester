@@ -4,7 +4,7 @@ RUN apk add --no-cache git g++ libxml2-dev libxslt-dev libxml2 libxslt
 
 RUN pip install --no-cache-dir lxml beautifulsoup4 requests
 
-ENV NLAB_HARVESTER_THREADS=8
+ENV NLAB_HARVESTER_THREADS=1
 ENV LATEXML_ADDRESS=localhost
 ENV LATEXML_PORT=8080
 ENV MAX_QUEUE_LENGTH=0
