@@ -18,10 +18,6 @@ class Filehandler:
         self.harvestpath = harvestpath
         self.batchsize = batchsize
 
-    def set_path(self, sourcepath):
-        """ setter for sourcepath """
-        self.sourcepath = sourcepath
-
     def set_batchsize(self, batchsize):
         """ setter for batchsize """
         self.batchsize = batchsize
@@ -29,6 +25,10 @@ class Filehandler:
     def set_sourcepath(self, sourcepath):
         """ setter for sourcepath """
         self.sourcepath = sourcepath
+
+    def set_harvestpath(self, harvestpath):
+        """ setter for harvestpath """
+        self.harvestpath = harvestpath
 
     # @util.timer
     def get_source_updates(self):
@@ -86,8 +86,12 @@ class Filehandler:
 
     # @util.timer
     def create_new_queue(self, max_batches=0, total_new=False):
-        """ creates a queue with all batches that needs to be harvested
-            returns it as a tuple of number and a list of the file_names"""
+        """
+        creates a queue with all batches that needs to be harvested
+        returns it as a tuple of batch_id and a list of the file_names
+        with max_batches it is possible the queue length and with total_new set
+        to True every harvest is made new althought it is not outdated
+        """
         files_list = self.create_filelist()
         max_filename = int(files_list[-1].split('.')[0])
 

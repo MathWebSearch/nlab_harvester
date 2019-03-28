@@ -45,7 +45,8 @@ def generate_url_from_title(title):
     """
     function that takes the the title of an nlab page and genaerates the
     url the nlab. The Title of an nLab Page looks like 'bla bla in nLab' and
-    the url is always http://ncatlab.org/nlab/show/bla+bla
+    the url is always http://ncatlab.org/nlab/show/bla+bla or
+    http://ncatlab.org/nlab/revision/bla+bla/REVISION
     """
     assert isinstance(title, str)
     base = 'http://ncatlab.org/nlab/revision/'

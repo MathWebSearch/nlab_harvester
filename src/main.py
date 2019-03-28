@@ -29,7 +29,7 @@ def worker(worker_id, batch_queue, config):
             # print(f'worker {worker_id} works on batch {batch_id}')
             nlab_harvester.harvest_batch(batch_id, batch)
 
-    print(f'stats of worker {worker_id}:')
+    # print(f'stats of worker {worker_id}:')
     util.print_time_stats()
 
 
@@ -59,7 +59,7 @@ def main():
     print(f'There are {len(queue)} batches to do')
 
     threads = int(config['threads'])
-    print(f'start nlab_harvesting with {threads} threads')
+    print(f'start nlab_harvesting with {threads} processes')
 
     if threads > 1:
         batch_queue = mp.Queue()
@@ -68,6 +68,7 @@ def main():
 
         procs = []
         for i in range(0, threads):
+            # insert a poison pill in the queue
             batch_queue.put((None, None))
             proc = mp.Process(target=worker, args=(i, batch_queue, config))
             proc.start()
