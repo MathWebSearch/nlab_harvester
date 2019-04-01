@@ -64,6 +64,17 @@ def generate_url_from_title(title):
     return base
 
 
+def generate_url_to_experimental_frontend(page_id):
+    """
+    this returns the url to the experimental frontend (see
+    https://nforum.ncatlab.org/discussion/8321/experimental-static-frontend-for-the-nlab/)
+    this seems to vendor the same html files, that are in the git repo
+    but seems atm more like diry hack
+    """
+    assert isinstance(page_id, int)
+    return f'https://ncatlab.org/nginx-experimental-frontend/{page_id}.html'
+
+
 class Harvester:
     """ Harvester """
     def __init__(self, sourcepath, harvestpath,
@@ -128,7 +139,8 @@ class Harvester:
     def harvest_file(self, path, data_id, root):
         """
         takes a file creates a datatag and puts all math expr as children
-        in root
+        in root (is a BeautifulSoup object)
+        data_id is here the same as the numberic part of the filename.
         """
         err_file = self.logpath + '/err' + str(data_id)
         try:
@@ -141,7 +153,8 @@ class Harvester:
 
         cur_file.close()
 
-        base_url = generate_url_from_title(soup.title.string)
+        # base_url = generate_url_from_title(soup.title.string)
+        base_url = generate_url_to_experimental_frontend(data_id)
         # datatag = create_data_tag(data_id, self.sourcepath + path)
         datatag = create_data_tag(data_id, None)
         datatag.append(soup.title)
