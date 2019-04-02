@@ -4,7 +4,6 @@
 
 import multiprocessing as mp
 import queue as q
-import os
 import filehandler
 import harvester
 import util
@@ -33,24 +32,10 @@ def worker(worker_id, batch_queue, config):
     util.print_time_stats()
 
 
-def read_enviroment():
-    """ function to read the enviroment varibales and return a dictonary filled
-    with it """
-    config = {}
-    config['threads'] = os.getenv('NLAB_HARVESTER_THREADS', '8')
-    config['sourcepath'] = os.getenv('NLAB_SOURCE',
-                                     '../nlab-content-html/pages/')
-    config['harvestpath'] = os.getenv('NLAB_HARVESTS', '../harvests/')
-    config['latexmlhost'] = os.getenv('LATEXML_ADDRESS', 'localhost')
-    config['latexmlport'] = os.getenv('LATEXML_PORT', '8080')
-    config['max_queue_length'] = os.getenv('MAX_QUEUE_LENGTH', '0')
-    return config
-
-
 def main():
     """ main of the nLab Harvester """
 
-    config = read_enviroment()
+    config = util.read_enviroment()
 
     file_handler = filehandler.Filehandler(config['sourcepath'],
                                            config['harvestpath'])
