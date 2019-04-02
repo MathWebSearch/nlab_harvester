@@ -90,4 +90,5 @@ def read_enviroment():
     config['latexmlhost'] = os.getenv('LATEXML_ADDRESS', 'localhost')
     config['latexmlport'] = os.getenv('LATEXML_PORT', '8080')
     config['max_queue_length'] = os.getenv('MAX_QUEUE_LENGTH', '0')
+    config['update_freq'] = os.getenv('UPDATE_FREQ', '0')
     return config

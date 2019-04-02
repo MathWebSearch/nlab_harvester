@@ -2,6 +2,7 @@
 
 """ main for nlab harvester """
 
+import time
 import multiprocessing as mp
 import queue as q
 import filehandler
@@ -31,17 +32,8 @@ def worker(worker_id, batch_queue, config):
     # print(f'stats of worker {worker_id}:')
     util.print_time_stats()
 
-
-def main():
-    """ main of the nLab Harvester """
-
-    config = util.read_enviroment()
-
-    file_handler = filehandler.Filehandler(config['sourcepath'],
-                                           config['harvestpath'])
-    file_handler.get_source_updates()
-    queue = file_handler.create_new_queue(int(config['max_queue_length']))
-    print(f'There are {len(queue)} batches to do')
+def do_work(config, queue):
+    """ starts the processes for the work """
 
     threads = int(config['threads'])
     print(f'start nlab_harvesting with {threads} processes')
@@ -70,6 +62,29 @@ def main():
         for (batchid, batch) in queue:
             nlab_harvester.harvest_batch(batchid, batch)
         util.print_time_stats()
+    print('The work is done for now.')
+
+
+def main():
+    """ main function for harvester """
+    config = util.read_enviroment()
+
+    file_handler = filehandler.Filehandler(config['sourcepath'],
+                                           config['harvestpath'])
+    sleep_timeout = int(config['update_freq'])*60
+    print(f'sleep_timeout: {sleep_timeout}s')
+    while True:
+        file_handler.get_source_updates()
+        queue = file_handler.create_new_queue(int(config['max_queue_length']))
+        print(f'There are {len(queue)} batches to do')
+        do_work(config, queue)
+        if sleep_timeout == 0:
+            break
+        else:
+            print(f'Now sleeping for {sleep_timeout}s')
+            time.sleep(sleep_timeout)
+
+    print('end of nlab_harvesting')
 
 
 if __name__ == "__main__":
