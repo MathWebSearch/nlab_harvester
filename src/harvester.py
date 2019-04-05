@@ -94,7 +94,7 @@ class Harvester:
         method """
         self.converter = converter
 
-    @ltxs.util.timer
+    @util.timer
     def __handle_tags(self, tags, root, data_id, base_url, err_file):
         """ just a helper function that takes the tags and converts them and
             puts them in the root node """
@@ -156,15 +156,15 @@ class Harvester:
         # base_url = generate_url_from_title(soup.title.string)
         base_url = generate_url_to_experimental_frontend(data_id)
         # datatag = create_data_tag(data_id, self.sourcepath + path)
-        datatag = create_data_tag(data_id, None)
-        datatag.append(soup.title)
+        datatag = create_data_tag(data_id, soup.title)
+        # datatag.append(soup.title)
         root.append(datatag)
 
         # search all Mathtags
         tags = soup.find_all("math", "maruku-mathml")
         self.__handle_tags(tags, root, data_id, base_url, err_file)
 
-    @ltxs.util.timer
+    @util.timer
     def harvest_batch(self, batchid, batch):
         """
         takes number and a list of filenames and creates a harvest in the
