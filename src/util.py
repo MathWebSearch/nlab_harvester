@@ -27,11 +27,11 @@ def timer(func):
 
 def print_time_stats(name=''):
     """ print the collected time_stats """
-    print('-'*5, ' Time Stats: ', name, '-'*5)
+    print('-'*10, ' Time Stats:', name, '-'*10)
     for key, value in TIME_STAT.items():
         avg = value[0]/value[1]
-        print(f'{key}: {value[1]} calls, {value[0]:.2f}s, avg: {avg:.2f}s')
-    print('-'*20)
+        print(f'\t{key}: {value[1]} calls, {value[0]:.2f}s, avg: {avg:.2f}s')
+    print('-'*40)
 
 
 def is_git_repo(path):
