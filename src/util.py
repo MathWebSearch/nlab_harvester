@@ -77,18 +77,3 @@ def log(complete_file_path, *contents):
             log_file.write('\n' + '-' * 5 + '\n')
     except OSError:
         print('logging went wrong' + complete_file_path)
-
-
-def read_enviroment():
-    """ function to read the enviroment varibales and return a dictonary filled
-    with it """
-    config = {}
-    config['threads'] = os.getenv('NLAB_HARVESTER_THREADS', '8')
-    config['sourcepath'] = os.getenv('NLAB_SOURCE',
-                                     '../nlab-content-html/pages/')
-    config['harvestpath'] = os.getenv('NLAB_HARVESTS', '../harvests/')
-    config['latexmlhost'] = os.getenv('LATEXML_ADDRESS', 'localhost')
-    config['latexmlport'] = os.getenv('LATEXML_PORT', '8080')
-    config['max_queue_length'] = os.getenv('MAX_QUEUE_LENGTH', '0')
-    config['update_freq'] = os.getenv('UPDATE_FREQ', '0')
-    return config
