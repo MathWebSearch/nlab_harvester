@@ -25,9 +25,9 @@ def timer(func):
     return wrapper
 
 
-def print_time_stats():
+def print_time_stats(name=''):
     """ print the collected time_stats """
-    print('-'*5, 'Time Stats:', '-'*5)
+    print('-'*5, ' Time Stats: ', name, '-'*5)
     for key, value in TIME_STAT.items():
         avg = value[0]/value[1]
         print(f'{key}: {value[1]} calls, {value[0]:.2f}s, avg: {avg:.2f}s')

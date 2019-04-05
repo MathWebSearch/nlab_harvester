@@ -4,6 +4,7 @@
     needs that the files have the pattern [1,2,...].html
     https://github.com/ncatlab/nlab-content-html
 """
+from multiprocessing import Queue
 import os
 import fnmatch
 import util
@@ -95,7 +96,7 @@ class Filehandler:
         files_list = self.create_filelist()
         max_filename = int(files_list[-1].split('.')[0])
 
-        queue = []
+        queue = Queue()
         counter = 0
         for i in range(0, max_filename//self.batchsize):
             cur_batch = []
@@ -109,7 +110,7 @@ class Filehandler:
             if not cur_batch:
                 continue
             if total_new or self.is_outdated(i, cur_batch):
-                queue.append((i, cur_batch))
+                queue.put((i, cur_batch))
                 counter += 1
             if 0 < max_batches <= counter:
                 break

@@ -16,6 +16,7 @@ def worker(worker_id, batch_queue, config):
     nlab_harvester = harvester.Harvester(config.sourcepath, config.harvestpath)
     nlab_harvester.converter.set_host(config.latexmlhost)
     nlab_harvester.converter.set_port(config.latexmlport)
+
     while True:
         try:
             batch_id, batch = batch_queue.get()
@@ -31,46 +32,32 @@ def worker(worker_id, batch_queue, config):
             print(f'process {worker_id} swollowed a poison pill')
             break
 
-    # print(f'stats of worker {worker_id}:')
-    util.print_time_stats()
+    util.print_time_stats(f'worker {worker_id}')
 
-def start_worker(config, queue):
+@util.timer
+def start_worker(config, work_queue):
     """ starts the processes for the work """
 
     threads = int(config.threads)
-    threads = min(len(queue), threads)
+    threads = min(work_queue.qsize(), threads)
     print(f'start nlab_harvesting with {threads} processes')
 
-    if threads > 1:
-        batch_queue = mp.Queue()
-        for entry in queue:
-            batch_queue.put(entry)
+    procs = []
+    for i in range(0, threads):
+        # insert a poison pill in the queue
+        work_queue.put((None, None))
+        proc = mp.Process(target=worker, args=(i, work_queue, config))
+        proc.start()
+        procs.append(proc)
 
-        procs = []
-        for i in range(0, threads):
-            # insert a poison pill in the queue
-            batch_queue.put((None, None))
-            proc = mp.Process(target=worker, args=(i, batch_queue, config))
-            proc.start()
-            procs.append(proc)
+    for proc in procs:
+        proc.join()
 
-        for proc in procs:
-            proc.join()
-    else:
-        # single threaded case
-        nlab_harvester = harvester.Harvester(config.sourcepath,
-                                             config.harvestpath)
-        nlab_harvester.converter.set_host(config.latexmlhost)
-        nlab_harvester.converter.set_port(config.latexmlport)
-        for (batchid, batch) in queue:
-            nlab_harvester.harvest_batch(batchid, batch)
-        util.print_time_stats()
     print('The work is done for now.')
 
 
 def main():
     """ main function for harvester """
-    # config = util.read_enviroment()
 
     config = config_reader.Config()
 
@@ -79,10 +66,10 @@ def main():
     sleep_timeout = int(config.update_freq)*60
     while True:
         file_handler.get_source_updates()
-        queue = file_handler.create_new_queue(int(config.max_queue_length))
-        if queue:
-            print(f'There are {len(queue)} batches to do')
-            start_worker(config, queue)
+        work_queue = file_handler.create_new_queue(int(config.max_queue_length))
+        if work_queue:
+            print(f'There are {work_queue.qsize()} batches to do')
+            start_worker(config, work_queue)
         else:
             print('Nothing to do yet')
 
@@ -91,7 +78,7 @@ def main():
         else:
             time.sleep(sleep_timeout)
 
-    print('end of nlab_harvesting')
+    util.print_time_stats('main process')
 
 
 if __name__ == "__main__":
