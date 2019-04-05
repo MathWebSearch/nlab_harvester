@@ -102,19 +102,18 @@ class Harvester:
         if self.logging:
             log_file = self.logpath + '/log' + str(data_id)
 
+        # look at all math tags and try to convert the annotation to  MathML
         for tag in tags:
-            # look at all math tags and try to convert the
-            # annotation to  MathML
             if not tag.find('annotation'):
                 continue
 
+            # ignore too short formulae
             if len(tag.annotation.text) < 2:
-                # too short
                 continue
 
             cleantag = html.unescape(tag.annotation.text)
+            # just to prevent that we are trying to convert an empty string
             if not cleantag:
-                # just to prevent that we are trying to convert an empty string
                 continue
             content = self.converter.convert(cleantag, err_file, log_file)
 
@@ -135,7 +134,7 @@ class Harvester:
 
             root.append(create_expr_tag(data_id, newnode, url))
 
-    @ltxs.util.timer
+    @util.timer
     def harvest_file(self, path, data_id, root):
         """
         takes a file creates a datatag and puts all math expr as children
@@ -150,14 +149,10 @@ class Harvester:
             return
 
         soup = BeautifulSoup(cur_file, 'lxml')
-
         cur_file.close()
 
-        # base_url = generate_url_from_title(soup.title.string)
         base_url = generate_url_to_experimental_frontend(data_id)
-        # datatag = create_data_tag(data_id, self.sourcepath + path)
         datatag = create_data_tag(data_id, soup.title)
-        # datatag.append(soup.title)
         root.append(datatag)
 
         # search all Mathtags

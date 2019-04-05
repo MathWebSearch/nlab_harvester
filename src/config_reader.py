@@ -31,7 +31,7 @@ class Config:
         self.latexmlhost = os.getenv('LATEXML_ADDRESS', 'localhost')
 
         self.latexmlport = int(os.getenv('LATEXML_PORT', '8080'))
-        if not 0 < self.latexmlport < 65525:
+        if not 0 < self.latexmlport < 65536:
             raise ValueError('Your LATEXML_PORT is not useful!')
 
         self.max_queue_length = int(os.getenv('MAX_QUEUE_LENGTH', '0'))
