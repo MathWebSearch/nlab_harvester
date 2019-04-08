@@ -25,7 +25,7 @@ def worker(worker_id, batch_queue, config):
             break
         else:
             if (batch_id, batch) != (None, None):
-                print(f'worker {worker_id} works on batch {batch_id}')
+                # print(f'worker {worker_id} works on batch {batch_id}')
                 nlab_harvester.harvest_batch(batch_id, batch)
                 continue
 
