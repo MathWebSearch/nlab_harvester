@@ -12,15 +12,15 @@ import latexmlservice as ltxs
 def create_harverst_tag():
     """ creates a the root for a harvest file """
 
-    string = "<mws:harvest xmlns:m=\"http://www.w3.org/1998/Math/MathML\" \
-            xmlns:mws=\"http://search.mathweb.org/ns\"></mws:harvest>"
+    string = ('<mws:harvest xmlns:m=\"http://www.w3.org/1998/Math/MathML\" '
+              'xmlns:mws=\"http://search.mathweb.org/ns\"></mws:harvest>')
     return BeautifulSoup(string, 'xml')
 
 
 def create_data_tag(data_id, content):
     """ creates a mws:data tag and fills it with content """
 
-    string = "<mws:data xmlns:mws=\"http://search.mathweb.org/ns\"></mws:data>"
+    string = '<mws:data xmlns:mws=\"http://search.mathweb.org/ns\"></mws:data>'
     tag = BeautifulSoup(string, 'xml')
     tag.data['mws:data_id'] = str(data_id)
     if content is not None:
@@ -32,7 +32,7 @@ def create_data_tag(data_id, content):
 def create_expr_tag(data_id, content, url):
     """ creates a mws:expr tag and fills it with content and the url """
 
-    string = "<mws:expr xmlns:mws=\"http://search.mathweb.org/ns\"></mws:expr>"
+    string = '<mws:expr xmlns:mws=\"http://search.mathweb.org/ns\"></mws:expr>'
     tag = BeautifulSoup(string, 'xml')
     tag.expr['mws:data_id'] = str(data_id)
     del tag.expr['xmlns:mws']
@@ -95,44 +95,27 @@ class Harvester:
         self.converter = converter
 
     @util.timer
-    def __handle_tags(self, tags, root, data_id, base_url, err_file):
-        """ just a helper function that takes the tags and converts them and
-            puts them in the root node """
-        log_file = None
-        if self.logging:
-            log_file = self.logpath + '/log' + str(data_id)
+    def harvest_batch(self, batchid, batch):
+        """
+        takes number and a list of filenames and creates a harvest in the
+        harvestpath with the name nlab_{batchid}.harvest
+        """
 
-        # look at all math tags and try to convert the annotation to  MathML
-        for tag in tags:
-            if not tag.find('annotation'):
-                continue
+        # This is the root node of the new harvest file
+        root = create_harverst_tag()
 
-            # ignore too short formulae
-            if len(tag.annotation.text) < 2:
-                continue
+        #This looks for the formulae in the source files and convertes them to
+        #mathml and inserts it in the root
+        for file_name in batch:
+            number = int(file_name.split('.')[0])
+            self.harvest_file(file_name, number, root.harvest)
 
-            cleantag = html.unescape(tag.annotation.text)
-            # just to prevent that we are trying to convert an empty string
-            if not cleantag:
-                continue
-            content = self.converter.convert(cleantag, err_file, log_file)
-
-            if content is None:
-                continue
-
-            # think about this, cause otherwise non math tags are discarded
-            newnode = BeautifulSoup(content, 'xml').math
-            if newnode is None:
-                util.log(err_file, tag.prettify(), content)
-                continue
-
-            # looks for id in tag, there some tags without an id
-            url = base_url
-
-            if 'id' in tag.attrs:
-                url += ('#' + tag['id'])
-
-            root.append(create_expr_tag(data_id, newnode, url))
+        # print(f'Batch Number {batchid} is done')
+        # this writes the harvest to the specific file
+        outfile = f'{self.harvestpath}/nlab_{str(batchid)}.harvest'
+        output = open(outfile, "w")
+        output.write(str(root))
+        output.close()
 
     @util.timer
     def harvest_file(self, path, data_id, root):
@@ -141,9 +124,10 @@ class Harvester:
         in root (is a BeautifulSoup object)
         data_id is here the same as the numberic part of the filename.
         """
-        err_file = self.logpath + '/err' + str(data_id)
+        err_file = f'{self.logpath}/err{str(data_id)}'
+
         try:
-            cur_file = open(self.sourcepath + '/' + path, 'r')
+            cur_file = open(f'{self.sourcepath}/{path}', 'r')
         except OSError:
             util.log(err_file, 'could not open ' + path)
             return
@@ -155,25 +139,49 @@ class Harvester:
         datatag = create_data_tag(data_id, soup.title)
         root.append(datatag)
 
+        # if there should be logging assemble the path to the logging file
+        # for that source file
+        log_file = None
+        if self.logging:
+            log_file = f'{self.logpath}/log{str(data_id)}'
+
+        @util.timer
+        def handle_tag(tag):
+            """ just a helper function that takes the tags and converts them and
+                puts them in the root node """
+
+            if not tag.find('annotation'):
+                return
+
+            # ignore too short formulae
+            if len(tag.annotation.text) < 2:
+                return
+
+            cleantag = html.unescape(tag.annotation.text)
+            # just to prevent that we are trying to convert an empty string
+            if not cleantag:
+                return
+
+            content = self.converter.convert(cleantag, err_file, log_file)
+            if content is None:
+                return
+
+            # think about this, cause otherwise non math tags are discarded
+            newnode = BeautifulSoup(content, 'xml').math
+            if newnode is None:
+                util.log(err_file, tag.prettify(), content)
+                return
+
+            # looks for id in tag, there some tags without an id
+            url = base_url
+            if 'id' in tag.attrs:
+                url += ('#' + tag['id'])
+
+            root.append(create_expr_tag(data_id, newnode, url))
+        # here ends the nested helper function handle_tag
+
         # search all Mathtags
         tags = soup.find_all("math", "maruku-mathml")
-        self.__handle_tags(tags, root, data_id, base_url, err_file)
-
-    @util.timer
-    def harvest_batch(self, batchid, batch):
-        """
-        takes number and a list of filenames and creates a harvest in the
-        harvestpath with the name nlab_{batchid}.harvest
-        """
-
-        root = create_harverst_tag()
-
-        for file_name in batch:
-            number = int(file_name.split('.')[0])
-            self.harvest_file(file_name, number, root.harvest)
-
-        # print(f'Batch Number {batchid} is done')
-        outfile = self.harvestpath + '/nlab_' + str(batchid) + '.harvest'
-        output = open(outfile, "w")
-        output.write(str(root))
-        output.close()
+        # and convert them
+        for tag in tags:
+            handle_tag(tag)
