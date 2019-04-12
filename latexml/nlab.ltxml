@@ -35,4 +35,9 @@ DefMacro('\neArrow', '\Nearrow');
 DefMacro('\seArrow', '\Searrow');
 DefMacro('\nwArrow', '\Nwarrow');
 
+# less and greater
+
+DefMacro('\lt', '<');
+DefMacro('\gt', '>');
+
 1;
