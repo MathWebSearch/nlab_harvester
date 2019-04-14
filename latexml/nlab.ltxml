@@ -2,20 +2,30 @@ use LaTeXML::Package;
 use strict;
 use warnings;
 
+RequirePackage('amsmath');
+
 DefMacro('\empty', '\emptyset');
 
 # Ignore the arrayopts because I think it's not relavant for the cmml
 DefMacro('\arrayopts{}','');
+# the array is the amsmath matrix
+DefMacro('\array{}', '\begin{matrix}#1\end{matrix}');
+# ignore the alignment infos
+DefMacro('\array[]{}{}', '\begin{matrix}#2\end{matrix}');
+
 # same as for the svg env don't know what to do with it,
 # but it seems not to work for all svg enviroments
 DefEnvironment('{svg}','');
 
-# I hope this makes out of the gathered/aligned environment
-# a gather/align environment
-DefMacro('gathered', 'gather');
+# I hope this makes out of the aligned environment
 DefMacro('aligned', 'align');
-# DefMacro('\gathered', '\gather');
 # DefMacro('\aligned', '\align');
+# DefMacro('\endaligned', '\endalign');
+
+#what to do with the gathered stuff
+DefMacro('gathered', 'gather');
+# DefMacro('\gathered', '\gather');
+# DefMacro('\endgathered', '\endgather');
 
 DefMath('\invamp', "\x{214B}");
 DefMacro('\parr','\invamp');
@@ -36,8 +46,8 @@ DefMacro('\seArrow', '\Searrow');
 DefMacro('\nwArrow', '\Nwarrow');
 
 # less and greater
-
 DefMacro('\lt', '<');
 DefMacro('\gt', '>');
+#
 
 1;

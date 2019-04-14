@@ -167,7 +167,7 @@ class Harvester:
                 return
 
             # think about this, cause otherwise non math tags are discarded
-            newnode = BeautifulSoup(content, 'xml').math
+            newnode = BeautifulSoup(content, 'xml')
             if newnode is None:
                 util.log(err_file, tag.prettify(), content)
                 return
