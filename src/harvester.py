@@ -114,7 +114,7 @@ class Harvester:
         # this writes the harvest to the specific file
         outfile = f'{self.harvestpath}/nlab_{str(batchid)}.harvest'
         output = open(outfile, "w")
-        output.write(str(root))
+        output.write(str(root.prettify()))
         output.close()
 
     @util.timer
@@ -147,8 +147,10 @@ class Harvester:
 
         @util.timer
         def handle_tag(tag):
-            """ just a helper function that takes the tags and converts them and
-                puts them in the root node """
+            """
+            just a helper function that takes the tags and converts them and
+            puts them in the root node
+            """
 
             if not tag.find('annotation'):
                 return
@@ -167,7 +169,7 @@ class Harvester:
                 return
 
             # think about this, cause otherwise non math tags are discarded
-            newnode = BeautifulSoup(content, 'xml')
+            newnode = BeautifulSoup(content, 'xml').math
             if newnode is None:
                 util.log(err_file, tag.prettify(), content)
                 return

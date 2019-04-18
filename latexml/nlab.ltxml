@@ -1,36 +1,59 @@
+# -*- mode: Perl -*-
 use LaTeXML::Package;
 use strict;
 use warnings;
 
 RequirePackage('amsmath');
 
-DefMacro('\empty', '\emptyset');
+# this is a try to get the itex specfic stuff workin
+# resources : https://jblevins.org/notes/itex
+# and https://golem.ph.utexas.edu/~distler/blog/itex2MMLcommands.html
 
+# the array is the amsmath matrix
+# at this point this is the only way i got the \array{} working
+DefMacro('\array{}', '\begin{matrix}#1\end{matrix}');
 # Ignore the arrayopts because I think it's not relavant for the cmml
 DefMacro('\arrayopts{}','');
-# the array is the amsmath matrix
-DefMacro('\array{}', '\begin{matrix}#1\end{matrix}');
-# ignore the alignment infos
-DefMacro('\array[]{}{}', '\begin{matrix}#2\end{matrix}');
 
 # same as for the svg env don't know what to do with it,
 # but it seems not to work for all svg enviroments
 DefEnvironment('{svg}','');
 
 # I hope this makes out of the aligned environment
-DefMacro('aligned', 'align');
+# DefMacro('aligned', 'align');
 # DefMacro('\aligned', '\align');
 # DefMacro('\endaligned', '\endalign');
 
 #what to do with the gathered stuff
-DefMacro('gathered', 'gather');
+# DefMacro('gathered', 'gather');
 # DefMacro('\gathered', '\gather');
 # DefMacro('\endgathered', '\endgather');
 
-DefMath('\invamp', "\x{214B}");
+#operators
+DefMacro('\bottom', '\bot');
+# not sure about MULOP, see ncatlab.org/nlab/show/multiplicative+disjunction
+DefMath('\invamp', "\x{214B}", role => 'MULOP', meaning => 'multiplicative disjunction');
 DefMacro('\parr','\invamp');
 
+DefMacro('\minusb', '\boxminus');
+DefMacro('\plusb', '\boxplus');
+DefMacro('\timesb', '\boxtimes');
 
+DefMacro('\union', '\cup');
+DefMacro('\intersection', '\cap');
+
+DefMath('\VDash', "\x{22AB}", role => 'RELOP');
+
+DefMacro('\Del', '\nabla');
+DefMacro('\odash', '\circleddash');
+DefMacro('\Vbar', '\Perp');
+
+#dots from left down to up right
+DefMathI('\udots', undef, "\x{22F0}", role => 'ID');
+
+# Symbols
+DefMacro('\empty', '\emptyset');
+DefMacro('\infinity', '\infty');
 # maybe this fixes the \b in a lot of \b < a formulae
 DefMacro('\b', 'b');
 # fix for these symboles stolen from txfonts.sty.ltxml and stmaryrd.sty.ltxml
@@ -39,15 +62,98 @@ DefMacro('\b', 'b');
 DefMath('\nequiv', "\x{2262}", meaning => 'not-equivalent-to', role => 'RELOP');
 DefMathI('\sslash', undef, "\x{2AFD}", role => 'RELOP');
 
+# arrow macros
+DefMacro('\embedsin', '\hookrightarrow');
+DefMacro('\map', '\mapsto');
+
+DefMacro('\nearr', '\nearrow');
+DefMacro('\nwarr', '\nwarrow');
+
+DefMacro('\searr', '\searrow');
+DefMacro('\swarr', '\swarrow');
+
 # Fix for doubled Arrows?
-DefMacro('\swArrow', '\Swarrow');
-DefMacro('\neArrow', '\Nearrow');
-DefMacro('\seArrow', '\Searrow');
-DefMacro('\nwArrow', '\Nwarrow');
+DefMath('\neArrow', "\x{21D7}", role => 'ARROW');
+DefMacro('\neArr', '\neArrow');
+
+DefMath('\nwArrow', "\x{21D6}", role => 'ARROW');
+DefMacro('\nwArr', '\nwArrow');
+
+DefMath('\swArrow', "\x{21D9}", role => 'ARROW');
+DefMacro('\swArr', '\swArrow');
+
+DefMath('\seArrow', "\x{21D8}", role => 'ARROW');
+DefMacro('\seArr', '\seArrow');
+
+DefMacro('\darr', '\downarrow');
+DefMacro('\uparr', '\uparrow');
+DefMacro('\downuparrow', '\updownarrow');
+DefMacro('\duparr', '\updownarrow');
+DefMacro('\updarr', '\updownarrow');
+DefMath('\curvearrowbotright', "\x{293b}", role => 'ARROW');
+DefMath('\righttoleftarrow', "\x{27f2}", role => 'ARROW');
+DefMath('\lefttorightarrow', "\x{27f3}" , role => 'ARROW');
+
+
 
 # less and greater
 DefMacro('\lt', '<');
 DefMacro('\gt', '>');
 #
+#Large Operators
+DefMacro('\Union', '\bigcup');
+DefMacro('\Intersection', '\bigcap');
+DefMacro('\Oplus', '\bigoplus');
+DefMacro('\Otimes', '\bigotimes');
+DefMacro('\Wedge', '\bigwedge');
+DefMacro('\Vee', '\bigvee');
+
+DefMacro('\coproduct', '\coprod');
+DefMacro('\product', '\prod');
+# integrals
+DefMacro('\integral', '\int');
+DefMacro('\doubleintegral', '\iint');
+DefMacro('\tripleintegral', '\iiint');
+DefMacro('\quadrupleintegral', '\iiiint');
+DefMacro('\contourintegral', '\oint');
+DefMacro('\conint', '\oint');
+
+# The 'greek letters'
+# don't know if this is clever, may replace this with including texvc.sty??
+DefMathI('\omicron', undef,  "\x{03BF}");
+
+DefMathI('\Alpha', undef, "\x{0391}");
+DefMathI('\Beta',  undef, "\x{0392}");
+
+DefMathI('\Zeta', undef,  "\x{0396}");
+DefMathI('\Eta',     undef, "\x{0397}");
+
+DefMathI('\Iota',  undef, "\x{0399}");
+DefMathI('\Kappa', undef, "\x{039A}");
+
+DefMathI('\Mu', undef, "\x{039C}");
+DefMathI('\Nu', undef, "\x{039D}");
+
+DefMathI('\Rho', undef, "\x{03A1}");
+DefMathI('\Tau', undef, "\x{03A4}");
+DefMacro('\Upsi', '\Upsilon');
+
+# Accents
+DefMacro('\closure{}', '\overline{#1}');
+DefMacro('\widebar{}', '\overline{#1}');
+DefMacro('\widevec{}', '\overrightarrow{#1}');
+DefMacro('\widecheck{}', '\capitalcaron{#1}');
+
+# Delimeter
+DefMacro('\lang', '\langle');
+DefMacro('\rang', '\rangle');
+DefMathI('\llangle', undef, "\x{27EA}", role => 'OPEN', stretchy => 'false');
+DefMathI('\rrangle', undef, "\x{27EB}", role => 'CLOSE', stretchy => 'false');
+
+# Fractions and stuff 
+DefMacro('\underoverset{}{}{}', '\underset{#1}{\overset{#2}{#3}}');
+# TODO MULTISCRPT
+# DefMacro('\multiscript{}{}{}', '' );
+
 
 1;

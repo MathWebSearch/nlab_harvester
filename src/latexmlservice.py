@@ -30,8 +30,7 @@ class LatexmlService:
     @util.timer
     def convert(self, literal, err_file, log_file):
         """ converts a literal returns None if something goes wrong """
-        # data = {'profile': 'nlab', 'tex': '$' + literal + '$'}
-        data = {'profile': 'nlab', 'tex': literal}
+        data = {'profile': 'nlab', 'tex': '$' + literal + '$'}
 
         try:
             request = requests.post(self.url, data=data)
