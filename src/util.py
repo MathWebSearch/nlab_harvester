@@ -13,10 +13,10 @@ def timer(func):
     """ timer function as a decorator """
     def wrapper(*args, **kwargs):
         before = time.time()
-        ret = func(*args, *kwargs)
+        ret = func(*args, **kwargs)
         after = time.time()
 
-        if not func.__name__ in TIME_STAT:
+        if func.__name__ not in TIME_STAT:
             TIME_STAT[func.__name__] = [0, 0]
 
         TIME_STAT[func.__name__][0] += (after - before)
