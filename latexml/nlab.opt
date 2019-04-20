@@ -4,7 +4,6 @@ post =
 whatsin = math
 whatsout = math
 cmml =
-pmml =
 preload = LaTeX.pool
 preload = article.cls
 preload = amsmath.sty
