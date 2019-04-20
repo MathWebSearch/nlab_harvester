@@ -3,6 +3,8 @@ services:
     harvester:
         build:
             context: ./src
+        env_file:
+            .env
         environment:
             - LATEXML_ADDRESS=latexml_daemon
             - LATEXML_PORT=8080
