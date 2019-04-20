@@ -18,8 +18,6 @@ services:
     latexml_daemon:
         build:
             context: ./latexml
-        ports:
-            - "8080:8080"
 volumes:
     harvests:
         external: true
