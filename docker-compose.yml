@@ -3,13 +3,13 @@ services:
     harvester:
         build:
             context: ./src
-        env_file:
-            .env
         environment:
             - LATEXML_ADDRESS=latexml_daemon
             - LATEXML_PORT=8080
+        env_file:
+            .env
         volumes:
-            - ./harvests:/mws_nlab_harvester/harvests/
+            - harvests:/mws_nlab_harvester/harvests/
             - ./nlab-content-html:/mws_nlab_harvester/nlab-content-html/
             - ./logs:/mws_nlab_harvester/logs/
         depends_on:
