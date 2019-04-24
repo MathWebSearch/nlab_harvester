@@ -3,6 +3,7 @@
 
 import html
 import re
+import copy
 from bs4 import BeautifulSoup
 import util
 import latexmlservice as ltxs
@@ -36,7 +37,8 @@ def create_expr_tag(data_id, content, url):
     tag = BeautifulSoup(string, 'xml')
     tag.expr['mws:data_id'] = str(data_id)
     del tag.expr['xmlns:mws']
-    tag.expr.append(content)
+    for child in content.contents:
+        tag.expr.append(copy.copy(child))
     tag.expr['url'] = url
     return tag.expr
 

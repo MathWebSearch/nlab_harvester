@@ -152,9 +152,9 @@ DefMathI('\rrangle', undef, "\x{27EB}", role => 'CLOSE', stretchy => 'false');
 
 # Fractions and stuff 
 DefMacro('\underoverset{}{}{}', '\underset{#1}{\overset{#2}{#3}}');
-# TODO MULTISCRPT
-DefMacro('\tensor{}{}', '#1#2');
-DefMacro('\multiscripts{}{}{}', '#1#2#3');
+# MULTISCRIPT and Tensor atm still in nlab.sty
+# DefMacro('\tensor{}{}', '#1#2');
+# DefMacro('\multiscripts{}{}{}', '#1#2#3');
 
 
 1;
