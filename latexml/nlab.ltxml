@@ -1,9 +1,10 @@
 # -*- mode: Perl -*-
-use LaTeXML::Package;
+package LaTeXML::Package::Pool;
 use strict;
 use warnings;
 
-RequirePackage('amsmath');
+use LaTeXML::Package;
+
 
 # this is a try to get the itex specfic stuff workin
 # resources : https://jblevins.org/notes/itex
@@ -150,11 +151,116 @@ DefMacro('\rang', '\rangle');
 DefMathI('\llangle', undef, "\x{27EA}", role => 'OPEN', stretchy => 'false');
 DefMathI('\rrangle', undef, "\x{27EB}", role => 'CLOSE', stretchy => 'false');
 
-# Fractions and stuff 
+# Fractions and stuff
 DefMacro('\underoverset{}{}{}', '\underset{#1}{\overset{#2}{#3}}');
 # TODO MULTISCRPT
-DefMacro('\tensor{}{}', '#1#2');
-DefMacro('\multiscripts{}{}{}', '#1#2#3');
+# DefMacro('\tensor{}{}', '#1#2');
+# DefMacro('\tensor{}{}', '\sideset{}{#2}{#1}');
+#DefMacro('\tensor', sub {
+#        my ($gullet) = @_;
+#        $gullet->closeMouth unless ($gullet->getMouth->hasMoreInput);
 
+#        #first argument is the base
+#        my $arg = $gullet->readArg();
+#        my $base = $arg->toString;
+#        # print "$base\n";
+#        my @scripts = ();
+#        my $next = 'Subscript';
+#        # second is the super and subscripts
+#        # they are parsed here and checked if some are missing
+#        while(my $tok = $gullet->readToken()){
+#            my $csname = $tok->getCSName;
+#            if ($csname eq 'Subscript' ){
+#                my $arg = $gullet->readArg();
+#                my $str = $arg->toString;
+#                if ($next ne $csname){
+#                    push(@scripts, undef);
+#                }
+#                push(@scripts, $str);
+#                $next = 'Superscript';
+#            }
+#            elsif ($csname eq 'Superscript' ){
+#                my $arg = $gullet->readArg();
+#                my $str = $arg->toString;
+#                if ($next ne $csname){
+#                    push(@scripts, undef);
+#                }
+#                push(@scripts, $str);
+#                $next = 'Subscript';
+#            }
+#            elsif($csname eq 'End'){
+#                last;
+#            }
+#        }
+#        # foreach my $x (@scripts) { print "$x\n"; }
+#        return Invocation( T_CS('\tensor@construct'), $base, @scripts);
+#    }
+
+#);
+
+# These Bindings are inspiered by the \sideset binding from the
+# amsmath.sty.ltxml
+# it seems to work but there is still the err with the unexpected
+# double-subscript
+# i'll guess I need to write something like the function above to avoid that
+
+DefConstructor('\tensor{}{}', sub {
+        my ($document, $base, $scripts) = @_;
+        my $node = $document->insertElement('ltx:XMArg', $base);
+        my $ch = $document->getFirstChildElement($node);
+        my $level = 0;
+        my $last = 'SUPERSCRIPT';
+        foreach my $script ($scripts->unlist){
+            if(my $scriptop = IsScript($script)){
+                $last++ if $$scriptop[1] eq $last;
+                $node = sidesetWrap($document, $node, 'post', $$scriptop[1], $level, $script);
+                $last = $$scriptop[1];
+            }
+            else{
+                Warn('expected', '<sub/supserscript>', $document,
+                  "Expected a sub/superscript in the prescripts of \\tensor",
+                  "Got " . Stringify($script));
+            }
+        }
+    }
+);
+
+DefConstructor('\multiscripts{}{}{}', sub {
+        my ($document, $pre, $base, $post) = @_;
+        my $node = $document->insertElement('ltx:XMArg', $base);
+        my $ch = $document->getFirstChildElement($node);
+
+        my $level = 0;
+        my $last = 'SUPERSCRIPT';
+
+        foreach my $script ($post->unlist){
+            if(my $scriptop = IsScript($script)){
+                $last++ if $$scriptop[1] eq $last;
+                $node = sidesetWrap($document, $node, 'post', $$scriptop[1], $level, $script);
+                $last = $$scriptop[1];
+            }
+            else{
+                Warn('expected', '<sub/supserscript>', $document,
+                  "Expected a sub/superscript in the prescripts of \\multiscript",
+                  "Got " . Stringify($script));
+            }
+        }
+        $level = 0;
+        $last = 'SUPERSCRIPT';
+
+        foreach my $script (reverse $pre->unlist){
+            if(my $scriptop = IsScript($script)){
+                $last++ if $$scriptop[1] eq $last;
+                $node = sidesetWrap($document, $node, 'pre', $$scriptop[1], $level, $script);
+                $last = $$scriptop[1];
+            }
+            else{
+                Warn('expected', '<sub/supserscript>', $document,
+                  "Expected a sub/superscript in the prescripts of \\multiscript",
+                  "Got " . Stringify($script));
+            }
+        }
+    }
+);
 
 1;
