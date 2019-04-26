@@ -18,7 +18,7 @@ DefMacro('\arrayopts{}','');
 
 # same as for the svg env don't know what to do with it,
 # but it seems not to work for all svg enviroments
-# DefEnvironment('{svg}','');
+DefEnvironment('{svg}','');
 
 #operators
 DefMacro('\bottom', '\bot');
