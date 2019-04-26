@@ -85,12 +85,11 @@ DefMath('\curvearrowbotright', "\x{293b}", role => 'ARROW');
 DefMath('\righttoleftarrow', "\x{27f2}", role => 'ARROW');
 DefMath('\lefttorightarrow', "\x{27f3}" , role => 'ARROW');
 
-
-
 # less and greater
 DefMacro('\lt', '<');
 DefMacro('\gt', '>');
-#
+
+
 #Large Operators
 DefMacro('\Union', '\bigcup');
 DefMacro('\Intersection', '\bigcap');
