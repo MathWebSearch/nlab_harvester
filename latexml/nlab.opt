@@ -25,7 +25,6 @@ preload = [utf8x]inputenc.sty
 preload = txfonts.sty
 preload = stmaryrd.sty
 preload = textcomp.sty
-preload = nlab.sty
 preload = nlab.ltxml
 path = $LATEXMLINPUTS
 inputencoding = utf-8
