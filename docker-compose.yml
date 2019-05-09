@@ -19,7 +19,10 @@ services:
         build:
             context: ../latexml-mws-docker
             args:
-                - LATEXML_MWS_VERSION=https://github.com/typohnebild/LaTeXML-Plugin-MathWebSearch.git
+                - LATEXML_VERSION=https://github.com/brucemiller/LaTeXML.git
+                - OTHER_PLUGINS=https://github.com/MathWebSearch/LaTeXML-plugin-iTeX2MML.git 
+                # - LATEXML_MWS_VERSION=https://github.com/typohnebild/LaTeXML-Plugin-MathWebSearch.git
+
 
 volumes:
     harvests:

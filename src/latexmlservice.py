@@ -34,7 +34,7 @@ class LatexmlService:
         data = {'profile': self.profile, 'tex': f'${literal}$'}
 
         try:
-            request = requests.post(self.url, params=data)
+            request = requests.post(self.url, data=data)
         except requests.exceptions.RequestException as exception:
             util.log(err_file, literal, str(exception))
             print(f'Excption while Post request: {exception}')
@@ -42,15 +42,14 @@ class LatexmlService:
 
         if request.status_code == 200:
             result = request.json()
-            if log_file is not None:
-                util.log(log_file, result['log'])
-            elif int(result['status_code']) != 0:
+            if int(result['status_code']) != 0:
                 util.log(err_file,
                          literal,
                          str(result['log']),
-                         str(result['result']),
                          str(result['status_code']))
-            return result['result']
+            elif log_file is not None:
+                util.log(log_file, result['log'])
+            return result.get('result', None)
 
         util.log(err_file, literal, str(request.status_code))
         print(f'error with {literal}')
