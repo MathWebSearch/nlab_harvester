@@ -44,7 +44,7 @@ class Harvest:
 
         data_tag = self.tag.find_all(find_function)
         if data_tag:
-            data_tag[0].append(copy.copy(content))
+            data_tag[0].insert(1, copy.copy(content))
         else:
             print(f'data_tag with {data_id} does not exist')
 
