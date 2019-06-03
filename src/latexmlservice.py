@@ -42,7 +42,7 @@ class LatexmlService:
 
         if request.status_code == 200:
             result = request.json()
-            if int(result['status_code']) != 0:
+            if int(result['status_code']) > 1:
                 util.log(err_file,
                          literal,
                          str(result['log']),

@@ -38,13 +38,32 @@ class Harvest:
     def insert_in_data_tag(self, data_id, content):
         """ puts content in a data_tag with that given data_id """
         def find_function(tag):
+            assert isinstance(tag, bs4.element.Tag)
             return (tag.name == 'data'
                     and tag.has_attr('mws:data_id')
                     and tag['mws:data_id'] == str(data_id))
 
         data_tag = self.tag.find_all(find_function)
         if data_tag:
-            data_tag[0].insert(1, copy.copy(content))
+            data_tag[0].append(copy.copy(content))
+        else:
+            print(f'data_tag with {data_id} does not exist')
+
+    def insert_in_meta_data(self, data_id, content):
+        """ insert content in the meta_data tag of the data_tag """
+        def find_function(tag):
+            assert isinstance(tag, bs4.element.Tag)
+            return (tag.name == 'data'
+                    and tag.has_attr('mws:data_id')
+                    and tag['mws:data_id'] == str(data_id))
+
+        data_tag = self.tag.find_all(find_function)
+        if data_tag:
+            if not data_tag[0].find_all('metadata'):
+                metadata = bs4.BeautifulSoup('<metadata/>', 'lxml')
+                data_tag[0].append(metadata.metadata)
+
+            data_tag[0].metadata.append(copy.copy(content))
         else:
             print(f'data_tag with {data_id} does not exist')
 
@@ -74,8 +93,14 @@ class Harvest:
         assert isinstance(math_tag, bs4.element.Tag)
         assert math_tag.name == 'math'
         math_tag['local_id'] = str(local_id)
-        self.insert_in_data_tag(data_id, math_tag)
-        self.insert_expr_tag(data_id, url, math_tag.semantics)
+        math_tag['url'] = url
+        pmml_math = copy.copy(math_tag)
+        # keeps only the pmml stuff for the data tag
+        # and puts only the cmml part in the expr
+        pmml_math.clear()
+        pmml_math.append(math_tag.semantics.find('annotation-xml'))
+        self.insert_in_data_tag(data_id, pmml_math)
+        self.insert_expr_tag(data_id, local_id, math_tag.semantics)
 
 def test():
     """ test """

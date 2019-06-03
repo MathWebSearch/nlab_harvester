@@ -77,7 +77,7 @@ class Harvester:
 
     @util.timer
     def harvest_file(self, path, data_id, harvest):
-        """ TODO """
+        """ TODO write doc string"""
         assert isinstance(harvest, hrvst.Harvest)
         err_file = f'{self.logpath}/err{str(data_id)}'
         log_file = None
@@ -90,11 +90,14 @@ class Harvester:
             return
         # this expolits the fact, that the content of a nlab page is in that
         # tag
-        relevant = BeautifulSoup(cur_file, 'lxml').find(id='revision')
+        soup = BeautifulSoup(cur_file, 'lxml')
         cur_file.close()
+
         base_url = generate_url_to_experimental_frontend(data_id)
-        harvest.insert_data_tag(data_id, f'{self.sourcepath}/{path}')
+        harvest.insert_data_tag(data_id, f'{self.sourcepath}{path}')
+        harvest.insert_in_meta_data(data_id, soup.title)
         local_id = 1
+        relevant = soup.find(id='revision')
 
         def handle_math_tag(math_tag):
             if not math_tag.find('annotation'):
