@@ -97,8 +97,8 @@ class Harvest:
         pmml_math = copy.copy(math_tag)
         # keeps only the pmml stuff for the data tag
         # and puts only the cmml part in the expr
-        pmml_math.clear()
-        pmml_math.append(math_tag.semantics.find('annotation-xml'))
+        pmml_math.semantics.clear()
+        pmml_math.semantics.append(math_tag.semantics.find('annotation-xml'))
         self.insert_in_data_tag(data_id, pmml_math)
         self.insert_expr_tag(data_id, local_id, math_tag.semantics)
 
