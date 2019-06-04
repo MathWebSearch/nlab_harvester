@@ -74,10 +74,9 @@ class Harvester:
                 number = int(file_name.split('.')[0])
                 self.harvest_file(file_name, number, harvest)
 
-
     @util.timer
     def harvest_file(self, path, data_id, harvest):
-        """ TODO write doc string"""
+        """ TODO write doc string and make it less complex"""
         assert isinstance(harvest, hrvst.Harvest)
         err_file = f'{self.logpath}/err{str(data_id)}'
         log_file = None
@@ -98,6 +97,8 @@ class Harvester:
         harvest.insert_in_meta_data(data_id, soup.title)
         local_id = 1
         relevant = soup.find(id='revision')
+        if relevant is None:
+            return
 
         @util.timer
         def handle_math_tag(math_tag):

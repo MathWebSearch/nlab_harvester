@@ -5,16 +5,18 @@ import subprocess as sp
 import bs4
 import util
 
+
 class Harvest:
     """ harvest """
     def __init__(self, output_file):
-        string = ('<mws:harvest xmlns:m=\"http://www.w3.org/1998/Math/MathML\" '
-                  'xmlns:mws=\"http://search.mathweb.org/ns\"></mws:harvest>')
+        string = ('<mws:harvest xmlns:m=\"http://www.w3.org/1998/Math/MathML\"'
+                  ' xmlns:mws=\"http://search.mathweb.org/ns\"></mws:harvest>')
         self.tag = bs4.BeautifulSoup(string, 'xml')
         self.output_file = output_file
 
     def __enter__(self):
         return self
+
     def __exit__(self, *args):
         self.write_to_file()
 
@@ -101,6 +103,7 @@ class Harvest:
         pmml_math.semantics.append(math_tag.semantics.find('annotation-xml'))
         self.insert_in_data_tag(data_id, pmml_math)
         self.insert_expr_tag(data_id, local_id, math_tag.semantics)
+
 
 def test():
     """ test """
