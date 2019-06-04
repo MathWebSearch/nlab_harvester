@@ -99,6 +99,7 @@ class Harvester:
         local_id = 1
         relevant = soup.find(id='revision')
 
+        @util.timer
         def handle_math_tag(math_tag):
             if not math_tag.find('annotation'):
                 return
