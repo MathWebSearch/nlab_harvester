@@ -37,6 +37,7 @@ class Harvest:
         del tag.data['xmlns:mws']
         self.tag.harvest.append(tag.data)
 
+    @util.timer
     def insert_in_data_tag(self, data_id, content):
         """ puts content in a data_tag with that given data_id """
         def find_function(tag):
@@ -51,6 +52,7 @@ class Harvest:
         else:
             print(f'data_tag with {data_id} does not exist')
 
+    @util.timer
     def insert_in_meta_data(self, data_id, content):
         """ insert content in the meta_data tag of the data_tag """
         def find_function(tag):
@@ -69,6 +71,7 @@ class Harvest:
         else:
             print(f'data_tag with {data_id} does not exist')
 
+    @util.timer
     def insert_expr_tag(self, data_id, url, semantics_node):
         """
             inserts a expr tag in the harvest node but just takes the cmml part
