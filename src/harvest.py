@@ -29,7 +29,7 @@ class Harvest:
         return self.tag.prettify()
 
     def insert_data_tag(self, data_id, path):
-        """ inserts a data tag """
+        """ inserts a new data tag into to the harvest tag"""
         string = ('<mws:data xmlns:mws=\"http://search.mathweb.org/ns\">'
                   '<id>' + path + '</id>''</mws:data>')
         tag = bs4.BeautifulSoup(string, 'xml')
@@ -47,6 +47,7 @@ class Harvest:
                     and tag['mws:data_id'] == str(data_id))
 
         data_tag = self.tag.find_all(find_function)
+        assert len(data_tag) == 1
         if data_tag:
             data_tag[0].append(copy.copy(content))
         else:
@@ -99,12 +100,7 @@ class Harvest:
         assert math_tag.name == 'math'
         math_tag['local_id'] = str(local_id)
         math_tag['url'] = url
-        pmml_math = copy.copy(math_tag)
-        # keeps only the pmml stuff for the data tag
-        # and puts only the cmml part in the expr
-        pmml_math.semantics.clear()
-        pmml_math.semantics.append(math_tag.semantics.find('annotation-xml'))
-        self.insert_in_data_tag(data_id, pmml_math)
+        self.insert_in_data_tag(data_id, math_tag)
         self.insert_expr_tag(data_id, local_id, math_tag.semantics)
 
 

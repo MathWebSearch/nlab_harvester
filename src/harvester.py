@@ -43,6 +43,20 @@ def generate_url_to_experimental_frontend(page_id):
     return f'https://ncatlab.org/nginx-experimental-frontend/{page_id}.html'
 
 
+def extract_text(element):
+    """
+    extracts all the text in @param element and returns it as bs4 element
+    """
+    # this expolits the fact, that the content of a nlab page is in that
+    # tag
+    relevant = element.find(id='revision')
+    text = ''
+    if relevant is not None:
+        text = relevant.getText().replace('\n', ' ')
+    text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
+    return text_tag.find('text')
+
+
 class Harvester:
     """ Harvester """
     def __init__(self, sourcepath, harvestpath,
@@ -52,6 +66,7 @@ class Harvester:
         self.logpath = '../logs/'
         self.logging = False
         self.converter = converter
+        self.text_extraction = False
 
     def set_logpath(self, logpath):
         """ setter for logpath """
@@ -61,6 +76,13 @@ class Harvester:
         """ setter for converter, needs something that implements a convert
         method """
         self.converter = converter
+
+    def get_log_file(self, data_id):
+        """ if logging returns the path to the file else none """
+        if not self.logging:
+            return None
+
+        return f'{self.logpath}/log{str(data_id)}'
 
     @util.timer
     def harvest_batch(self, batchid, batch):
@@ -79,16 +101,12 @@ class Harvester:
         """ TODO write doc string and make it less complex"""
         assert isinstance(harvest, hrvst.Harvest)
         err_file = f'{self.logpath}/err{str(data_id)}'
-        log_file = None
-        if self.logging:
-            log_file = f'{self.logpath}/log{str(data_id)}'
+        log_file = self.get_log_file(data_id)
         try:
             cur_file = open(f'{self.sourcepath}/{path}', 'r')
         except OSError:
             util.log(err_file, 'could not open ' + path)
             return
-        # this expolits the fact, that the content of a nlab page is in that
-        # tag
         soup = BeautifulSoup(cur_file, 'lxml')
         cur_file.close()
 
@@ -96,9 +114,6 @@ class Harvester:
         harvest.insert_data_tag(data_id, f'{self.sourcepath}{path}')
         harvest.insert_in_meta_data(data_id, soup.title)
         local_id = 1
-        relevant = soup.find(id='revision')
-        if relevant is None:
-            return
 
         @util.timer
         def handle_math_tag(math_tag):
@@ -129,9 +144,8 @@ class Harvester:
             math_tag.replace_with(f'math{local_id}')
             local_id = local_id + 1
 
-        for math_tag in relevant.find_all('math', 'maruku-mathml'):
+        for math_tag in soup.find_all('math', 'maruku-mathml'):
             handle_math_tag(math_tag)
 
-        text = relevant.getText().replace('\n', ' ')
-        text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
-        harvest.insert_in_data_tag(data_id, text_tag.find('text'))
+        if self.text_extraction:
+            harvest.insert_in_data_tag(data_id, extract_text(soup))
