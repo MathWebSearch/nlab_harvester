@@ -129,7 +129,7 @@ class Harvester:
             content = self.converter.convert(cleantag, err_file, log_file)
             if content is None:
                 return
-            newnode = BeautifulSoup(content, 'xml').math
+            newnode = BeautifulSoup(content, 'xml').Math
             if newnode is None:
                 util.log(err_file, math_tag.prettify(), content)
                 return

@@ -97,7 +97,7 @@ class Harvest:
             and the cmml part in a expr tag
         """
         assert isinstance(math_tag, bs4.element.Tag)
-        assert math_tag.name == 'math'
+        assert math_tag.name == 'math' or math_tag.name == 'Math'
         math_tag['local_id'] = str(local_id)
         math_tag['url'] = url
         self.insert_in_data_tag(data_id, math_tag)
