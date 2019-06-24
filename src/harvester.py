@@ -43,20 +43,6 @@ def generate_url_to_experimental_frontend(page_id):
     return f'https://ncatlab.org/nginx-experimental-frontend/{page_id}.html'
 
 
-def extract_text(element):
-    """
-    extracts all the text in @param element and returns it as bs4 element
-    """
-    # this expolits the fact, that the content of a nlab page is in that
-    # tag
-    relevant = element.find(id='revision')
-    text = ''
-    if relevant is not None:
-        text = relevant.getText().replace('\n', ' ')
-    text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
-    return text_tag.find('text')
-
-
 class Harvester:
     """ Harvester """
     def __init__(self, sourcepath, harvestpath,
@@ -83,6 +69,19 @@ class Harvester:
             return None
 
         return f'{self.logpath}/log{str(data_id)}'
+
+    def extract_text(self, element):
+        """
+        extracts all the text in @param element and returns it as bs4 element
+        """
+        # this expolits the fact, that the content of a nlab page is in that
+        # tag
+        relevant = element.find(id='revision')
+        text = ''
+        if relevant is not None and self.text_extraction:
+            text = relevant.getText().replace('\n', ' ')
+        text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
+        return text_tag.find('text')
 
     @util.timer
     def harvest_batch(self, batchid, batch):
@@ -147,5 +146,4 @@ class Harvester:
         for math_tag in soup.find_all('math', 'maruku-mathml'):
             handle_math_tag(math_tag)
 
-        if self.text_extraction:
-            harvest.insert_in_data_tag(data_id, extract_text(soup))
+        harvest.insert_in_data_tag(data_id, self.extract_text(soup))

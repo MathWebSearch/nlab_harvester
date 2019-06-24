@@ -2,8 +2,19 @@
 """ represents a harvest """
 import copy
 import subprocess as sp
+# from xml.sax.saxutils import escape
 import bs4
 import util
+
+
+def make_find_func(data_id):
+    """ TODO: """
+    def find_function(tag):
+        assert isinstance(tag, bs4.element.Tag)
+        return (tag.name == 'data'
+                and tag.has_attr('mws:data_id')
+                and tag['mws:data_id'] == str(data_id))
+    return find_function
 
 
 class Harvest:
@@ -23,7 +34,7 @@ class Harvest:
     def write_to_file(self):
         """ write the member tag to the file """
         with open(self.output_file, 'w') as out_file:
-            out_file.write(str(self.tag.prettify()))
+            out_file.write(self.tag.prettify())
 
     def __repr__(self):
         return self.tag.prettify()
@@ -40,18 +51,25 @@ class Harvest:
     @util.timer
     def insert_in_data_tag(self, data_id, content):
         """ puts content in a data_tag with that given data_id """
-        def find_function(tag):
-            assert isinstance(tag, bs4.element.Tag)
-            return (tag.name == 'data'
-                    and tag.has_attr('mws:data_id')
-                    and tag['mws:data_id'] == str(data_id))
 
-        data_tag = self.tag.find_all(find_function)
+        data_tag = self.tag.find_all(make_find_func(data_id))
         assert len(data_tag) == 1
         if data_tag:
             data_tag[0].append(copy.copy(content))
         else:
             print(f'data_tag with {data_id} does not exist')
+
+    def insert_math_in_data_tag(self, data_id, math_tag, local_id, url):
+        """ TODO """
+        data_tag = self.tag.find_all(make_find_func(data_id))
+        assert len(data_tag) == 1
+        new_math = bs4.BeautifulSoup('<math/>', 'xml')
+        new_math.math['local_id'] = str(local_id)
+        new_math.math['url'] = str(url)
+        new_math.math.append(copy.copy(math_tag))
+        # escaped_math = escape(str(math_tag))
+        # new_math.math.append(escaped_math.replace('\n', ''))
+        data_tag[0].append(new_math.math)
 
     @util.timer
     def insert_in_meta_data(self, data_id, content):
@@ -100,7 +118,8 @@ class Harvest:
         assert math_tag.name == 'math' or math_tag.name == 'Math'
         math_tag['local_id'] = str(local_id)
         math_tag['url'] = url
-        self.insert_in_data_tag(data_id, math_tag)
+        # self.insert_in_data_tag(data_id, math_tag)
+        self.insert_math_in_data_tag(data_id, math_tag, local_id, url)
         self.insert_expr_tag(data_id, local_id, math_tag.semantics)
 
 
