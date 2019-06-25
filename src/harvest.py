@@ -18,20 +18,22 @@ def make_find_func(data_id):
     return find_function
 
 
-def convert_tag_to_string(tag):
-    """ converts the complete tag to string and strips out clutter """
-    assert isinstance(tag, bs4.element.Tag)
-    ret = tag.decode()
-    ret = ret.replace('\n', '')
-    ret = ret.replace('\t', '')
-    ret = ret.strip(' \n\t\r')
+def escape(string):
+    """ formatter function for writing to file """
+    ret = EntitySubstitution.substitute_xml(string)
+    ret = ret.replace('"', '&quot;')
+    ret = ret.replace("'", '&apos;')
     return ret
 
 
-def escape(string):
-    """ formatter function for writing to file """
-    ret = EntitySubstitution.substitute_html(string)
-    ret = ret.replace('\"', '&quot;')
+def convert_tag_to_string(tag):
+    """ converts the complete tag to string and strips out clutter """
+    assert isinstance(tag, bs4.element.Tag)
+    # ret = tag.decode()
+    ret = tag.decode()
+    ret = ret.replace('\n', '')
+    # ret = ret.strip(' \n\t\r')
+    # print(ret)
     return ret
 
 
@@ -52,7 +54,7 @@ class Harvest:
     def write_to_file(self):
         """ write the member tag to the file """
         with open(self.output_file, 'w') as out_file:
-            out_file.write(self.tag.prettify(formatter=escape))
+            out_file.write(self.tag.prettify())
 
     def __repr__(self):
         return self.tag.prettify()
@@ -97,7 +99,7 @@ class Harvest:
         assert len(data_tag) == 1
         if data_tag:
             if not data_tag[0].find_all('metadata'):
-                metadata = bs4.BeautifulSoup('<metadata/>', 'lxml')
+                metadata = bs4.BeautifulSoup('<metadata/>', 'xml')
                 data_tag[0].append(metadata.metadata)
 
             escaped = convert_tag_to_string(content)
@@ -111,6 +113,7 @@ class Harvest:
             inserts a expr tag in the harvest node but just takes the cmml part
             from the semantics node
         """
+        assert semantics_node
         string = ('<mws:expr xmlns:mws=\"http://search.mathweb.org/ns\">'
                   '</mws:expr>')
         tag = bs4.BeautifulSoup(string, 'xml')
@@ -131,11 +134,14 @@ class Harvest:
         """
         assert isinstance(math_tag, bs4.element.Tag)
         assert math_tag.name == 'math' or math_tag.name == 'Math'
+        semantics = math_tag.find('m:semantics')
+        if not semantics:
+            math_tag.find('semantics')
         math_tag['local_id'] = str(local_id)
         math_tag['url'] = url
         # self.insert_in_data_tag(data_id, math_tag)
         self.insert_math_in_data_tag(data_id, math_tag, local_id, url)
-        self.insert_expr_tag(data_id, local_id, math_tag.semantics)
+        self.insert_expr_tag(data_id, local_id, semantics)
 
 
 def test():
