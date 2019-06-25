@@ -2,7 +2,8 @@
 """ represents a harvest """
 import copy
 import subprocess as sp
-# from xml.sax.saxutils import escape
+from bs4.dammit import EntitySubstitution
+# from xml.sax.saxutils import escape, quoteattr
 import bs4
 import util
 
@@ -15,6 +16,23 @@ def make_find_func(data_id):
                 and tag.has_attr('mws:data_id')
                 and tag['mws:data_id'] == str(data_id))
     return find_function
+
+
+def convert_tag_to_string(tag):
+    """ converts the complete tag to string and strips out clutter """
+    assert isinstance(tag, bs4.element.Tag)
+    ret = tag.decode()
+    ret = ret.replace('\n', '')
+    ret = ret.replace('\t', '')
+    ret = ret.strip(' \n\t\r')
+    return ret
+
+
+def escape(string):
+    """ formatter function for writing to file """
+    ret = EntitySubstitution.substitute_html(string)
+    ret = ret.replace('\"', '&quot;')
+    return ret
 
 
 class Harvest:
@@ -34,7 +52,7 @@ class Harvest:
     def write_to_file(self):
         """ write the member tag to the file """
         with open(self.output_file, 'w') as out_file:
-            out_file.write(self.tag.prettify())
+            out_file.write(self.tag.prettify(formatter=escape))
 
     def __repr__(self):
         return self.tag.prettify()
@@ -66,27 +84,24 @@ class Harvest:
         new_math = bs4.BeautifulSoup('<math/>', 'xml')
         new_math.math['local_id'] = str(local_id)
         new_math.math['url'] = str(url)
-        new_math.math.append(copy.copy(math_tag))
-        # escaped_math = escape(str(math_tag))
-        # new_math.math.append(escaped_math.replace('\n', ''))
+        # new_math.math.append(copy.copy(math_tag))
+        escaped_math = convert_tag_to_string(math_tag)
+        new_math.math.append(escaped_math)
         data_tag[0].append(new_math.math)
 
     @util.timer
     def insert_in_meta_data(self, data_id, content):
         """ insert content in the meta_data tag of the data_tag """
-        def find_function(tag):
-            assert isinstance(tag, bs4.element.Tag)
-            return (tag.name == 'data'
-                    and tag.has_attr('mws:data_id')
-                    and tag['mws:data_id'] == str(data_id))
 
-        data_tag = self.tag.find_all(find_function)
+        data_tag = self.tag.find_all(make_find_func(data_id))
+        assert len(data_tag) == 1
         if data_tag:
             if not data_tag[0].find_all('metadata'):
                 metadata = bs4.BeautifulSoup('<metadata/>', 'lxml')
                 data_tag[0].append(metadata.metadata)
 
-            data_tag[0].metadata.append(copy.copy(content))
+            escaped = convert_tag_to_string(content)
+            data_tag[0].metadata.append(escaped)
         else:
             print(f'data_tag with {data_id} does not exist')
 

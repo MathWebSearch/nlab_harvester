@@ -77,9 +77,9 @@ class Harvester:
         # this expolits the fact, that the content of a nlab page is in that
         # tag
         relevant = element.find(id='revision')
-        text = ''
+        text = ' '
         if relevant is not None and self.text_extraction:
-            text = relevant.getText().replace('\n', ' ')
+            text = relevant.getText().replace('\n', ' ').strip()
         text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
         return text_tag.find('text')
 
