@@ -2,6 +2,7 @@
 """ represents a harvest """
 import copy
 import subprocess as sp
+import re
 from bs4.dammit import EntitySubstitution
 # from xml.sax.saxutils import escape, quoteattr
 import bs4
@@ -9,7 +10,7 @@ import util
 
 
 def make_find_func(data_id):
-    """ TODO: """
+    """Returns a function that looks for a tag with data_id """
     def find_function(tag):
         assert isinstance(tag, bs4.element.Tag)
         return (tag.name == 'data'
@@ -18,8 +19,9 @@ def make_find_func(data_id):
     return find_function
 
 
-def escape(string):
+def xml_escape(string):
     """ formatter function for writing to file """
+    # it seems to be a problem form bs to escape stuff and selfclosing tags
     ret = EntitySubstitution.substitute_xml(string)
     ret = ret.replace('"', '&quot;')
     ret = ret.replace("'", '&apos;')
@@ -29,10 +31,9 @@ def escape(string):
 def convert_tag_to_string(tag):
     """ converts the complete tag to string and strips out clutter """
     assert isinstance(tag, bs4.element.Tag)
-    # ret = tag.decode()
     ret = tag.decode()
     ret = ret.replace('\n', '')
-    # ret = ret.strip(' \n\t\r')
+    ret = ret.strip(' \n\t\r')
     # print(ret)
     return ret
 
@@ -79,15 +80,15 @@ class Harvest:
         else:
             print(f'data_tag with {data_id} does not exist')
 
-    def insert_math_in_data_tag(self, data_id, math_tag, local_id, url):
+    def insert_math_in_data_tag(self, data_id, math_tag, local_id):
         """ TODO """
         data_tag = self.tag.find_all(make_find_func(data_id))
         assert len(data_tag) == 1
         new_math = bs4.BeautifulSoup('<math/>', 'xml')
         new_math.math['local_id'] = str(local_id)
-        new_math.math['url'] = str(url)
+        # new_math.math['url'] = str(url)
         # new_math.math.append(copy.copy(math_tag))
-        escaped_math = convert_tag_to_string(math_tag)
+        escaped_math = convert_tag_to_string(math_tag.math)
         new_math.math.append(escaped_math)
         data_tag[0].append(new_math.math)
 
@@ -102,8 +103,12 @@ class Harvest:
                 metadata = bs4.BeautifulSoup('<metadata/>', 'xml')
                 data_tag[0].append(metadata.metadata)
 
-            escaped = convert_tag_to_string(content)
-            data_tag[0].metadata.append(escaped)
+            if isinstance(content, bs4.element.Tag):
+                escaped = convert_tag_to_string(content)
+                data_tag[0].metadata.append(escaped)
+            else:
+                data_tag[0].metadata.append(content)
+
         else:
             print(f'data_tag with {data_id} does not exist')
 
@@ -119,9 +124,18 @@ class Harvest:
         tag = bs4.BeautifulSoup(string, 'xml')
         tag.expr['mws:data_id'] = str(data_id)
         del tag.expr['xmlns:mws']
-        for child in semantics_node.children:
-            if child.name != 'annotation-xml':
+        # here it depends on the order of the parameter of ltx if cmml then the
+        # annontation ist pmml and vice verse
+        # i hope that it stays compatible to both orders
+        cmml = semantics_node.find('annotation-xml', encoding='MathML-Content')
+        if cmml:
+            for child in cmml.children:
                 tag.expr.append(copy.copy(child))
+        else:
+            for child in semantics_node.children:
+                print(child.name)
+                if not re.match('annotation.*', child.name):
+                    tag.expr.append(copy.copy(child))
 
         tag.expr['url'] = url
         self.tag.harvest.append(tag)
@@ -137,10 +151,10 @@ class Harvest:
         semantics = math_tag.find('m:semantics')
         if not semantics:
             math_tag.find('semantics')
-        math_tag['local_id'] = str(local_id)
-        math_tag['url'] = url
+        # math_tag['local_id'] = str(local_id)
+        math_tag.math['url'] = url
         # self.insert_in_data_tag(data_id, math_tag)
-        self.insert_math_in_data_tag(data_id, math_tag, local_id, url)
+        self.insert_math_in_data_tag(data_id, math_tag, local_id)
         self.insert_expr_tag(data_id, local_id, semantics)
 
 
