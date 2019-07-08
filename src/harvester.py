@@ -52,7 +52,7 @@ class Harvester:
         self.logpath = '../logs/'
         self.logging = False
         self.converter = converter
-        self.text_extraction = False
+        self.text_extraction = True
 
     def set_logpath(self, logpath):
         """ setter for logpath """

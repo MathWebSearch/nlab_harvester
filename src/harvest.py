@@ -103,11 +103,11 @@ class Harvest:
                 metadata = bs4.BeautifulSoup('<metadata/>', 'xml')
                 data_tag[0].append(metadata.metadata)
 
-            if isinstance(content, bs4.element.Tag):
-                escaped = convert_tag_to_string(content)
-                data_tag[0].metadata.append(escaped)
-            else:
-                data_tag[0].metadata.append(content)
+            # if isinstance(content, bs4.element.Tag):
+            #     escaped = convert_tag_to_string(content)
+                # data_tag[0].metadata.append(escaped)
+            # else:
+            data_tag[0].metadata.append(content)
 
         else:
             print(f'data_tag with {data_id} does not exist')
