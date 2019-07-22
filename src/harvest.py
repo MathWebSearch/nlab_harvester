@@ -1,10 +1,8 @@
 #!/usr/bin/python3
 """ represents a harvest """
 import copy
-import subprocess as sp
 import re
 from bs4.dammit import EntitySubstitution
-# from xml.sax.saxutils import escape, quoteattr
 import bs4
 import util
 
@@ -34,7 +32,6 @@ def convert_tag_to_string(tag):
     ret = tag.decode()
     ret = ret.replace('\n', '')
     ret = ret.strip(' \n\t\r')
-    # print(ret)
     return ret
 
 
@@ -81,13 +78,14 @@ class Harvest:
             print(f'data_tag with {data_id} does not exist')
 
     def insert_math_in_data_tag(self, data_id, math_tag, local_id):
-        """ TODO """
+        """
+            takes complete math tag and inserts it as a string in the data_tag
+            specified by the data_id
+        """
         data_tag = self.tag.find_all(make_find_func(data_id))
         assert len(data_tag) == 1
         new_math = bs4.BeautifulSoup('<math/>', 'xml')
         new_math.math['local_id'] = str(local_id)
-        # new_math.math['url'] = str(url)
-        # new_math.math.append(copy.copy(math_tag))
         escaped_math = convert_tag_to_string(math_tag.math)
         new_math.math.append(escaped_math)
         data_tag[0].append(new_math.math)
@@ -156,17 +154,3 @@ class Harvest:
         # self.insert_in_data_tag(data_id, math_tag)
         self.insert_math_in_data_tag(data_id, math_tag, local_id)
         self.insert_expr_tag(data_id, local_id, semantics)
-
-
-def test():
-    """ test """
-    args = ['latexmlc',
-            '--profile=itex',
-            'literal:$a \\invamp b$',
-            ]
-    proc = sp.Popen(args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-    out, _ = proc.communicate()
-    tag = bs4.BeautifulSoup(out.decode(), 'xml').math
-    with Harvest('test.harvest') as harvest:
-        harvest.insert_data_tag(1, 'bla/test/path')
-        harvest.insert_math_tag(1, 1, 'testurl', tag)
