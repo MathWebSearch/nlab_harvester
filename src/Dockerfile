@@ -2,7 +2,8 @@ FROM python:3.7.2-alpine3.9
 
 RUN apk add --no-cache git g++ libxml2-dev libxslt-dev libxml2 libxslt
 
-RUN pip install --no-cache-dir lxml beautifulsoup4 requests
+ADD ./requirements.txt ./
+RUN pip install --no-cache-dir -r ./requirements.txt
 
 ENV NLAB_HARVESTER_THREADS=1
 ENV LATEXML_ADDRESS=localhost
@@ -10,7 +11,8 @@ ENV LATEXML_PORT=8080
 ENV MAX_QUEUE_LENGTH=0
 ENV UPDATE_FREQ=0
 
-RUN mkdir /mws_nlab_harvester
+RUN mkdir -p /mws_nlab_harvester
+WORKDIR /mws_nlab_harvester
 
 RUN mkdir -p /mws_nlab_harvester/src
 ADD ./*.py /mws_nlab_harvester/src/
