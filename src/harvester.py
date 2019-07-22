@@ -80,6 +80,7 @@ class Harvester:
         text = ' '
         if relevant is not None and self.text_extraction:
             text = relevant.getText().replace('\n', ' ').strip()
+            text = text.strip()
         text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
         return text_tag.find('text')
 
@@ -138,12 +139,11 @@ class Harvester:
             if 'id' in math_tag.attrs:
                 url += ('#' + math_tag['id'])
 
-            nonlocal local_id
             harvest.insert_math_tag(data_id, local_id, url, newnode)
-            math_tag.replace_with(f'math{local_id}')
-            local_id = local_id + 1
 
         for math_tag in soup.find_all('math', 'maruku-mathml'):
             handle_math_tag(math_tag)
+            math_tag.replace_with(f'math{local_id}')
+            local_id = local_id + 1
 
         harvest.insert_in_data_tag(data_id, self.extract_text(soup))
