@@ -3,44 +3,10 @@
 
 import html
 import re
-import copy
 from bs4 import BeautifulSoup
 import util
+import harvest as hrvst
 import latexmlservice as ltxs
-
-
-# helper functions to create bs4 tags
-def create_harverst_tag():
-    """ creates a the root for a harvest file """
-
-    string = ('<mws:harvest xmlns:m=\"http://www.w3.org/1998/Math/MathML\" '
-              'xmlns:mws=\"http://search.mathweb.org/ns\"></mws:harvest>')
-    return BeautifulSoup(string, 'xml')
-
-
-def create_data_tag(data_id, content):
-    """ creates a mws:data tag and fills it with content """
-
-    string = '<mws:data xmlns:mws=\"http://search.mathweb.org/ns\"></mws:data>'
-    tag = BeautifulSoup(string, 'xml')
-    tag.data['mws:data_id'] = str(data_id)
-    if content is not None:
-        tag.data.append(content)
-    del tag.data['xmlns:mws']
-    return tag.data
-
-
-def create_expr_tag(data_id, content, url):
-    """ creates a mws:expr tag and fills it with content and the url """
-
-    string = '<mws:expr xmlns:mws=\"http://search.mathweb.org/ns\"></mws:expr>'
-    tag = BeautifulSoup(string, 'xml')
-    tag.expr['mws:data_id'] = str(data_id)
-    del tag.expr['xmlns:mws']
-    for child in content.contents:
-        tag.expr.append(copy.copy(child))
-    tag.expr['url'] = url
-    return tag.expr
 
 
 def generate_url_from_title(title):
@@ -86,6 +52,7 @@ class Harvester:
         self.logpath = '../logs/'
         self.logging = False
         self.converter = converter
+        self.text_extraction = True
 
     def set_logpath(self, logpath):
         """ setter for logpath """
@@ -96,96 +63,87 @@ class Harvester:
         method """
         self.converter = converter
 
+    def get_log_file(self, data_id):
+        """ if logging returns the path to the file else none """
+        if not self.logging:
+            return None
+
+        return f'{self.logpath}/log{str(data_id)}'
+
+    def extract_text(self, element):
+        """
+        extracts all the text in @param element and returns it as bs4 element
+        """
+        # this expolits the fact, that the content of a nlab page is in that
+        # tag
+        relevant = element.find(id='revision')
+        text = ' '
+        if relevant is not None and self.text_extraction:
+            text = relevant.getText().replace('\n', ' ').strip()
+        text_tag = BeautifulSoup(f'<text>{text}</text>', 'xml')
+        return text_tag.find('text')
+
     @util.timer
     def harvest_batch(self, batchid, batch):
         """
         takes number and a list of filenames and creates a harvest in the
         harvestpath with the name nlab_{batchid}.harvest
         """
-
-        # This is the root node of the new harvest file
-        root = create_harverst_tag()
-
-        #This looks for the formulae in the source files and convertes them to
-        #mathml and inserts it in the root
-        for file_name in batch:
-            number = int(file_name.split('.')[0])
-            self.harvest_file(file_name, number, root.harvest)
-
-        # print(f'Batch Number {batchid} is done')
-        # this writes the harvest to the specific file
         outfile = f'{self.harvestpath}/nlab_{str(batchid)}.harvest'
-        output = open(outfile, "w")
-        output.write(str(root.prettify()))
-        output.close()
+        with hrvst.Harvest(outfile) as harvest:
+            for file_name in batch:
+                number = int(file_name.split('.')[0])
+                self.harvest_file(file_name, number, harvest)
 
     @util.timer
-    def harvest_file(self, path, data_id, root):
-        """
-        takes a file creates a datatag and puts all math expr as children
-        in root (is a BeautifulSoup object)
-        data_id is here the same as the numberic part of the filename.
-        """
+    def harvest_file(self, path, data_id, harvest):
+        """ TODO write doc string and make it less complex"""
+        assert isinstance(harvest, hrvst.Harvest)
         err_file = f'{self.logpath}/err{str(data_id)}'
-
+        log_file = self.get_log_file(data_id)
         try:
             cur_file = open(f'{self.sourcepath}/{path}', 'r')
         except OSError:
             util.log(err_file, 'could not open ' + path)
             return
-
         soup = BeautifulSoup(cur_file, 'lxml')
         cur_file.close()
 
         base_url = generate_url_to_experimental_frontend(data_id)
-        datatag = create_data_tag(data_id, soup.title)
-        root.append(datatag)
-
-        # if there should be logging assemble the path to the logging file
-        # for that source file
-        log_file = None
-        if self.logging:
-            log_file = f'{self.logpath}/log{str(data_id)}'
+        harvest.insert_data_tag(data_id, f'{self.sourcepath}{path}')
+        harvest.insert_in_meta_data(data_id, soup.title)
+        local_id = 1
 
         @util.timer
-        def handle_tag(tag):
-            """
-            just a helper function that takes the tags and converts them and
-            puts them in the root node
-            """
-
-            if not tag.find('annotation'):
+        def handle_math_tag(math_tag):
+            if not math_tag.find('annotation'):
                 return
-
             # ignore too short formulae
-            if len(tag.annotation.text) < 2:
+            if len(math_tag.annotation.text) < 2:
                 return
-
-            cleantag = html.unescape(tag.annotation.text)
+            cleantag = html.unescape(math_tag.annotation.text)
             # just to prevent that we are trying to convert an empty string
             if not cleantag:
                 return
-
             content = self.converter.convert(cleantag, err_file, log_file)
             if content is None:
                 return
-
-            # think about this, cause otherwise non math tags are discarded
-            newnode = BeautifulSoup(content, 'xml').math
+            newnode = BeautifulSoup(content, 'xml').Math
             if newnode is None:
-                util.log(err_file, tag.prettify(), content)
+                util.log(err_file, math_tag.prettify(), content)
                 return
 
             # looks for id in tag, there some tags without an id
             url = base_url
-            if 'id' in tag.attrs:
-                url += ('#' + tag['id'])
+            if 'id' in math_tag.attrs:
+                url += ('#' + math_tag['id'])
 
-            root.append(create_expr_tag(data_id, newnode, url))
-        # here ends the nested helper function handle_tag
+            nonlocal local_id
+            harvest.insert_math_tag(data_id, local_id, url, newnode)
+            math_tag.replace_with(f'math{local_id}')
+            local_id = local_id + 1
 
-        # search all Mathtags
-        tags = soup.find_all("math", "maruku-mathml")
-        # and convert them
-        for tag in tags:
-            handle_tag(tag)
+        for math_tag in soup.find_all('math', 'maruku-mathml'):
+            handle_math_tag(math_tag)
+
+        harvest.insert_in_data_tag(data_id, self.extract_text(soup))

@@ -1,6 +1,6 @@
 *.swp
 *.swo
-harvests/
+harvests*/
 logs/
 nlab-content-html/
 */__pycache__/

@@ -34,6 +34,7 @@ def worker(worker_id, batch_queue, config):
 
     util.print_time_stats(f'worker {worker_id}')
 
+
 @util.timer
 def start_worker(config, work_queue):
     """ starts the processes for the work """
@@ -59,17 +60,17 @@ def start_worker(config, work_queue):
 def main():
     """ main function for harvester """
 
-    config = config_reader.Config()
+    cfg = config_reader.Config()
 
-    file_handler = filehandler.Filehandler(config.sourcepath, config.harvestpath)
+    file_handler = filehandler.Filehandler(cfg.sourcepath, cfg.harvestpath)
 
-    sleep_timeout = int(config.update_freq)*60
+    sleep_timeout = int(cfg.update_freq)*60
     while True:
         file_handler.get_source_updates()
-        work_queue = file_handler.create_new_queue(int(config.max_queue_length))
+        work_queue = file_handler.create_new_queue(int(cfg.max_queue_length))
         if work_queue:
             print(f'There are {work_queue.qsize()} batches to do')
-            start_worker(config, work_queue)
+            start_worker(cfg, work_queue)
         else:
             print('Nothing to do yet')
 

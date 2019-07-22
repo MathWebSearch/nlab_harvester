@@ -75,7 +75,8 @@ def log(complete_file_path, *contents):
         log_file.write('\n' + '-' * 5 + '\n')
         log_file.write(str(datetime.datetime.now()) + '\n')
         for content in contents:
-            log_file.write(content)
-            log_file.write('\n' + '-' * 5 + '\n')
+            if content:
+                log_file.write(content)
+                log_file.write('\n' + '-' * 5 + '\n')
     except OSError:
         print('logging went wrong' + complete_file_path)

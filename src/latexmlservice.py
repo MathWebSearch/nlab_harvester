@@ -11,6 +11,7 @@ class LatexmlService:
         self.host = host
         self.port = port
         self.make_url()
+        self.profile = 'itex'
 
     def set_port(self, port):
         """ setter for port """
@@ -30,7 +31,7 @@ class LatexmlService:
     @util.timer
     def convert(self, literal, err_file, log_file):
         """ converts a literal returns None if something goes wrong """
-        data = {'profile': 'nlab', 'tex': '$' + literal + '$'}
+        data = {'profile': self.profile, 'tex': f'${literal}$'}
 
         try:
             request = requests.post(self.url, data=data)
@@ -41,9 +42,16 @@ class LatexmlService:
 
         if request.status_code == 200:
             result = request.json()
+            if int(result['status_code']) != 0:
+                util.log(err_file,
+                         literal,
+                         str(result['log']),
+                         str(result['status_code']))
+                return None
+
             if log_file is not None:
                 util.log(log_file, result['log'])
-            return result['result']
+            return result.get('result', None)
 
         util.log(err_file, literal, str(request.status_code))
         print(f'error with {literal}')
