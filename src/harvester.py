@@ -129,7 +129,9 @@ class Harvester:
             if content is None:
                 return
             newnode = BeautifulSoup(content, 'xml').Math
-            if newnode is None:
+            # check if there is an cerror node in the result to prevent to have
+            # them in the index
+            if 'cerror' in content or newnode is None:
                 util.log(err_file, math_tag.prettify(), content)
                 return
 

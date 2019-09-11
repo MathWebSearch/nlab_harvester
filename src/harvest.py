@@ -52,7 +52,8 @@ class Harvest:
     def write_to_file(self):
         """ write the member tag to the file """
         with open(self.output_file, 'w') as out_file:
-            out_file.write(self.tag.prettify())
+            clean_string = re.sub(r' +', ' ', str(self.tag)).strip()
+            out_file.write(clean_string)
 
     def __repr__(self):
         return self.tag.prettify()
@@ -101,10 +102,8 @@ class Harvest:
                 metadata = bs4.BeautifulSoup('<metadata/>', 'xml')
                 data_tag[0].append(metadata.metadata)
 
-            # if isinstance(content, bs4.element.Tag):
-            #     escaped = convert_tag_to_string(content)
-                # data_tag[0].metadata.append(escaped)
-            # else:
+            # clear out the newlines and leading and ending whitespaces
+            content.string = content.string.replace('\n', '').strip()
             data_tag[0].metadata.append(content)
 
         else:
