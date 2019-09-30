@@ -17,7 +17,7 @@ def generate_url_from_title(title):
     http://ncatlab.org/nlab/revision/bla+bla/REVISION
     """
     assert isinstance(title, str)
-    base = 'http://ncatlab.org/nlab/revision/'
+    base = 'http://ncatlab.org/nlab/show/'
     # some crazy regex magic: it searches for all non-whitespacechars that are
     # maybe followed by a single whitespace, just to remove some unwanted
     # spaces and newlines
@@ -109,7 +109,9 @@ class Harvester:
         soup = BeautifulSoup(cur_file, 'lxml')
         cur_file.close()
 
-        base_url = generate_url_to_experimental_frontend(data_id)
+        # till the issue with the ids is solved just use main route
+        # base_url = generate_url_to_experimental_frontend(data_id)
+        base_url = generate_url_from_title(soup.title.string)
         harvest.insert_data_tag(data_id, f'{self.sourcepath}{path}')
         harvest.insert_in_meta_data(data_id, soup.title)
         local_id = 1
@@ -134,11 +136,15 @@ class Harvester:
             if 'cerror' in content or newnode is None:
                 util.log(err_file, math_tag.prettify(), content)
                 return
+            # remove alttext to make harvests a little smaller
+            if 'alttext' in newnode.math.attrs:
+                del newnode.math['alttext']
 
-            # looks for id in tag, there some tags without an id
+            # TODO till the issue with the ids is solve just use none
             url = base_url
-            if 'id' in math_tag.attrs:
-                url += ('#' + math_tag['id'])
+            # looks for id in tag, there some tags without an id
+            # if 'id' in math_tag.attrs:
+            #     url += ('#' + math_tag['id'])
 
             harvest.insert_math_tag(data_id, local_id, url, newnode)
 
