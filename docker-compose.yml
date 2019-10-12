@@ -14,14 +14,14 @@ services:
             - ./logs:/mws_nlab_harvester/logs/
         depends_on:
             - latexml_daemon
-
+        restart: always
     latexml_daemon:
         build:
             context: ../latexml-mws-docker
             args:
                 - LATEXML_VERSION=https://github.com/brucemiller/LaTeXML.git
                 - OTHER_PLUGINS=https://github.com/MathWebSearch/LaTeXML-plugin-iTeX2MML.git
-
+        restart: always
 volumes:
     harvests:
         external: true
